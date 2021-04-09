@@ -2,9 +2,9 @@
 // Red/Main code is standard player One. Or pick your favorate color 
 // Check out SwarmBots.online for more info
 
+#include <Arduino.h>
 #include <ButtonDebounce.h>
 #include <IRremote.h>
-IRsend IrSender;
 
 #if defined(ARDUINO_ARCH_SAMD)
 #define Serial SerialUSB
@@ -26,7 +26,10 @@ const int rGb = A1;
 const int rgB = A2;
 
 const int buttonPin = 2; 
-int buttonState = 0;   
+const int IR_SEND_PIN = 5;
+
+const int debounceDelay = 50;
+int buttonState = 0;    
 
 
 void setup() {
@@ -39,14 +42,13 @@ void setup() {
     pinMode(LED_6, OUTPUT);
     pinMode(LED_7, OUTPUT);
     pinMode(LED_8, OUTPUT);
-    pinMode(LED_9, OUTPUT);
-    
+    pinMode(LED_9, OUTPUT);    
     pinMode(Rgb, OUTPUT);
     pinMode(rGb, OUTPUT);
     pinMode(rgB, OUTPUT);
-    
     pinMode(buttonPin, INPUT);
-    
+    pinMode(IR_SEND_PIN, OUTPUT);
+
 /////////////////////////////////////////////////
 //START UP RGB SEQUENCE 
 /////////////////////////////////////////////////
@@ -242,22 +244,28 @@ void setup() {
 ////////////////////////////////////////////////    
      
     Serial.begin(115200);
-#if defined(__AVR_ATmega32U4__) || defined(SERIAL_USB) || defined(SERIAL_PORT_USBVIRTUAL)
-    delay(2000);
+#if defined(__AVR_ATmega32U4__) || defined(SERIAL_USB) || defined(SERIAL_PORT_USBVIRTUAL)  || defined(ARDUINO_attiny3217)
+    delay(1000); // To be able to connect Serial monitor after reset or power up and before first printout
 #endif
-    Serial.println(F("START " __FILE__ " from " __DATE__));
+    // Just to know which program is running on my Arduino
+    Serial.println(F("START " __FILE__ " from " __DATE__ "\r\nUsing library version " VERSION_IRREMOTE));
+
+    IrSender.begin(IR_SEND_PIN, ENABLE_LED_FEEDBACK); // Specify send pin and enable feedback LED at default feedback LED pin
+
     Serial.print(F("Ready to send IR signals at pin "));
     Serial.println(IR_SEND_PIN);
 }
-uint32_t data = 0xFF38C7;  // BOTS OFF RED/GREEN 5
+uint32_t botSTOP = 0xFF38C7; 
 uint8_t nbits = 32;
+uint8_t sCommand = 0x34;
 uint8_t sRepeats = 0;
 
+
 void loop() {
-    buttonState = digitalRead(buttonPin);
-    if (buttonState == HIGH) {
-    IrSender.sendNEC(data, nbits);
-    delay(1);
+    if (digitalRead(buttonPin) == HIGH){
+    delay(debounceDelay);
+    IrSender.sendNEC(botSTOP, sCommand, sRepeats);
+    delay(600);
 
 /////////////////////////////////////////////////////
 //  ZAP SEQUENCE
