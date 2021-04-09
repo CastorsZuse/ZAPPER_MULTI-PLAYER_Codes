@@ -1,5 +1,5 @@
 // Zapper code for Swarm Bots Multi Player Mode
-// // UPDATED FOR irRemote.h 3.0 
+// UPDATED FOR irRemote.h 3.0 
 // Check out SwarmBots.online for more info
 
 #include <Arduino.h>
